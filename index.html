@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Collision Engine</title>
+		<link rel="stylesheet" type="text/css" href="style.css" />
+	</head>
+	<body>
+		<canvas width="500" height="500"></canvas>
+		<script src="input.js"></script>
+		<script src="maps.js"></script>
+		<script src="collision.js"></script>
+		<script>
+			var ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
+			
+			var world = new Level(map1);
+			//world.gravity.y = 200.0;
+			for(var e = 0; e < 20; e++)
+				world.entities.push(new Entity(300+Math.random()*100-50, 300+Math.random()*100-50, 30));
+			
+			var dt = 0.0,
+				currentTime = Date.now(),
+				lastTime = Date.now(),
+				time = 0.0;
+
+			function loop(){
+				currentTime = Date.now();
+				dt = (currentTime-lastTime)/1000;
+				lastTime = currentTime;
+				time += dt;
+				//console.log(time);
+				
+				world.entities[0].acc.x = 0.0;
+				world.entities[0].acc.y = 0.0;
+				if(Keyboard.Keys["ArrowRight"])
+					world.entities[0].acc.x = 300;
+				if(Keyboard.Keys["ArrowLeft"])
+					world.entities[0].acc.x = -300;
+				if(Keyboard.Keys["ArrowUp"])
+					world.entities[0].acc.y = -300;
+				if(Keyboard.Keys["ArrowDown"])
+					world.entities[0].acc.y = 300;
+				
+				world.update(dt);
+				
+				world.camera.x = world.entities[0].bounds.pos.x-250;
+				world.camera.y = world.entities[0].bounds.pos.y-250;
+				world.camera.y += 0.7;
+				ctx.translate(-world.camera.x, -world.camera.y);
+				ctx.fillStyle = "white";
+				ctx.fillRect(world.camera.x, world.camera.y, 500, 500);
+				
+				ctx.fillStyle = "green";
+				var map = world.map;
+				for(var y = 0; y < map.height; y++){
+					for(var x = 0; x < map.width; x++){
+						var type = map.content[x+map.width*y];
+						if(type === 1){
+							ctx.fillRect(x*map.tileSize, y*map.tileSize, map.tileSize, map.tileSize);
+						}
+					}
+				}
+				
+				ctx.fillStyle = "blue";
+				var es = world.entities;
+				for(var i = 0; i < es.length; i++){
+					var e = es[i];
+					
+					//ctx.fillRect(e.bounds.pos.x-e.halfSize, e.bounds.pos.y-e.halfSize, e.size, e.size);
+					ctx.beginPath();
+					ctx.arc(e.bounds.pos.x, e.bounds.pos.y, e.bounds.r, 0, 2*Math.PI, false);
+					ctx.fill();
+				}
+				
+				ctx.translate(world.camera.x, world.camera.y);
+				
+				window.requestAnimationFrame(loop);
+			}
+			
+			window.requestAnimationFrame(loop);
+			
+			/*var id = window.setInterval(function(){
+				var length = world.entities.length;
+				for(var i = 0; i < length; i++){
+					var e = world.entities[i];
+					world.entities.push(new Entity(e.bounds.pos.x+Math.random(), e.bounds.pos.y+Math.random(), 30));
+				}
+				if(world.entities.length >= 100)
+					window.clearInterval(id);
+			}, 2000);*/
+		</script>
+	</body>
+</html>
