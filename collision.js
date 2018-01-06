@@ -31,6 +31,7 @@ function Entity(x, y, size){
 	//this.pos = position;
 	this.vel = new Vec2(0.0, 0.0);
 	this.acc = new Vec2(0.0, 0.0);
+	this.bounce = 0.3;
 	
 	this.size = size;
 	this.halfSize = size/2;
@@ -53,7 +54,7 @@ Level.prototype.update = function(dt){
 		map = this.map;
 
 	//Perform entity-entity collision detection and resolution (if a collision is detected)
-	var e = 3000;   //Repulsion force
+	var e = 250;   //Repulsion force
 	for(var i = 0; i < es.length; i++){
 		for(var j = i+1; j < es.length; j++){
 			var e1 = es[i],
@@ -70,7 +71,7 @@ Level.prototype.update = function(dt){
 				
 				var ratio = 1.0-dist/(b1.r+b2.r),//Math.pow(1.0, 1.0-dist/(b1.r+b2.r)),
 					//force = (e*ratio)*((ratio-1.0)*-1);
-					force = e*ratio*ratio*ratio;
+					force = e*ratio;//*ratio*ratio;
 
 				var d = new Vec2(b1.pos.x-b2.pos.x, b1.pos.y-b2.pos.y);   //Vector between e1 and e2
 				d.normalize();
@@ -94,8 +95,9 @@ Level.prototype.update = function(dt){
 	
 	//Update entities on the x axis and perform wall-entity collision detection and resolution
 	for(var i = 0; i < es.length; i++){
-		var e = es[i],
-			b = e.bounds;
+		var e      = es[i],
+			b      = e.bounds,
+			bounce = e.bounce;
 
 		e.vel.x += e.acc.x*dt;
 		e.bounds.pos.x += e.vel.x*dt;
@@ -111,12 +113,14 @@ Level.prototype.update = function(dt){
 				if(this.overlapsWithMap(e, x, y)){
 					if(e.vel.x > 0){
 						b.pos.x = x*map.tileSize-map.tileSize/2;
-						e.vel.x = 0;
+						//e.vel.x = 0;
+						e.vel.x = -bounce*e.vel.x;
 					} else if(e.vel.x < 0){
 						//If it actually overlap on the x axis
 						if(b.pos.x-map.tileSize/2 < x*map.tileSize+map.tileSize){
 							b.pos.x = x*map.tileSize+map.tileSize+map.tileSize/2;
-							e.vel.x = 0;
+							//e.vel.x = 0;
+							e.vel.x = -bounce*e.vel.x;
 						}
 					}
 				}
@@ -144,10 +148,12 @@ Level.prototype.update = function(dt){
 				if(this.overlapsWithMap(e, x, y)){
 					if(e.vel.y > 0){
 						b.pos.y = y*map.tileSize-map.tileSize/2;
-						e.vel.y = 0;
+						//e.vel.y = 0;
+						e.vel.y = -bounce*e.vel.y;
 					} else if(e.vel.y < 0){
 						b.pos.y = y*map.tileSize+map.tileSize+map.tileSize/2;
-						e.vel.y = 0;
+						//e.vel.y = 0;
+						e.vel.y = -bounce*e.vel.y;
 					}
 				}
 			}
